@@ -1,35 +1,83 @@
+
 package com.example.bb.architecturepattern;
 
-import android.app.Activity;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import android.app.ListActivity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.View;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
 
-
-public class MainActivity extends Activity {
+public class MainActivity extends ListActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        initViews();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
+    /**
+     * initViews: TODO<br/>
+     * 
+     * @author meitu.yanbb
+     * @since MT 1.0
+     */
+    private void initViews() {
+        // TODO Auto-generated method stub
+        //绑定数据
+        setListAdapter(new SimpleAdapter(this, getData(),
+                android.R.layout.simple_list_item_1, new String[] {
+                    "title"
+                }, new int[] {
+                    android.R.id.text1
+                }));
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+    private List<Map<String, Object>> getData() {
+        List<Map<String, Object>> result = new ArrayList<Map<String,Object>>();
+        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+        mainIntent.addCategory("android.intent.category.bb");
+        PackageManager manager =  getPackageManager();
+        List<ResolveInfo> infos = manager.queryIntentActivities(mainIntent, 0);
+        for (ResolveInfo resolveInfo : infos) {
+            Map<String, Object> temp = new HashMap<String, Object>();
+            temp.put("title", getResources().getString(resolveInfo.activityInfo.labelRes));
+            temp.put("intent", activityIntent(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
+            result.add(temp);
         }
-        return super.onOptionsItemSelected(item);
+        return result;
+    }
+
+    /**
+     * activityIntent: TODO<br/>
+     * 
+     * @author meitu.yanbb
+     * @since MT 1.0
+     */
+    private Intent activityIntent(String packageName, String componentName) {
+        // TODO Auto-generated method stub
+        Intent intent = new Intent();
+        intent.setClassName(packageName, componentName);
+        return intent;
+    }
+    
+    /* (non-Javadoc)
+     * @see android.app.ListActivity#onListItemClick(android.widget.ListView, android.view.View, int, long)
+     */
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        // TODO Auto-generated method stub
+        @SuppressWarnings("unchecked")
+        Map<String, Object> map = (Map<String, Object>)l.getItemAtPosition(position);
+        Intent intent = new Intent((Intent)map.get("intent"));
+        intent.addCategory("android.intent.category.bb");
+        startActivity(intent);
     }
 }
